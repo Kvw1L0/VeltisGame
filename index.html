@@ -142,12 +142,8 @@
 <script>
     // --- COLORES CORPORATIVOS PARA CANVAS (Black & Yellow) ---
     const COLORS = {
-        bg: '#050505', 
-        ground: '#121212', 
-        yellow: '#FFC107',
-        white: '#FFFFFF', 
-        orange: '#FF5722', 
-        platform: '#222222'
+        bg: '#050505', ground: '#121212', yellow: '#FFC107',
+        white: '#FFFFFF', orange: '#FF5722', platform: '#222222'
     };
 
     // --- LÓGICA DEL FORMULARIO Y MODAL ---
@@ -171,7 +167,6 @@
         currentPlayerName = name.split(" ")[0]; 
         document.getElementById('player-name-display').innerText = currentPlayerName;
         
-        // --- AQUÍ CONECTAS CON FIREBASE PARA BBDD ---
         console.log("Lead guardado: ", { name, company, email });
 
         btnSubmit.innerText = "✓ Registro Exitoso";
@@ -181,31 +176,23 @@
         btnPlay.style.display = "block";
     });
 
-    // Mostrar Modal de Instrucciones
     btnPlay.addEventListener('click', () => {
         modal.style.display = "flex";
-        // Pequeño delay para la animación de entrada
-        setTimeout(() => {
-            modal.style.opacity = "1";
-            modalBox.style.transform = "translateY(0)";
-        }, 10);
+        setTimeout(() => { modal.style.opacity = "1"; modalBox.style.transform = "translateY(0)"; }, 10);
     });
 
-    // Iniciar Juego desde el Modal
     btnStartGame.addEventListener('click', () => {
-        modal.style.opacity = "0";
-        modalBox.style.transform = "translateY(20px)";
-        
+        modal.style.opacity = "0"; modalBox.style.transform = "translateY(20px)";
         setTimeout(() => {
             modal.style.display = "none";
             document.getElementById('form-screen').style.display = "none";
             document.getElementById('game-screen').style.display = "flex";
             initGame(); 
-        }, 300); // Esperar que termine la transición
+        }, 300); 
     });
 
 
-    // --- MOTOR DEL JUEGO (VELTIS ENGINE B&Y) ---
+    // --- MOTOR DEL JUEGO PROCEDURAL ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const appContainer = document.getElementById('app-container');
@@ -231,11 +218,13 @@
 
     function playSound(snd) { snd.currentTime = 0; snd.play().catch(e => console.log("Audio en espera")); }
 
-    let animationId, frames = 0, score = 0, gameSpeed = 6.5, backgroundX = 0;
+    // Variables de Estado (Añadimos timers dinámicos)
+    let animationId, frames = 0, score = 0, gameSpeed = 6.0, backgroundX = 0;
+    let nextChunkFrame = 100, nextRockFrame = 250; // Timers iniciales procedurales
     let platforms = [], collectibles = [], obstacles = [], fallingRocks = [], particles = [];
 
     const groundHeight = 60, gravity = 1.2, playerJumpForce = 20; 
-    const player = { x: 80, y: 0, width: 50, height: 50, dy: 0, grounded: false, frameX: 0, frameTimer: 0, hasShield: false };
+    const player = { x: 80, y: 0, width: 45, height: 45, dy: 0, grounded: false, frameX: 0, frameTimer: 0, hasShield: false };
 
     function resizeCanvas() { canvas.width = document.getElementById('game-screen').clientWidth; canvas.height = document.getElementById('game-screen').clientHeight; }
     window.addEventListener('resize', resizeCanvas);
@@ -248,7 +237,10 @@
         player.dy = 0; player.grounded = true; player.hasShield = false;
         
         platforms = []; collectibles = []; obstacles = []; fallingRocks = []; particles = [];
-        score = 0; frames = 0; gameSpeed = 6.5; backgroundX = 0;
+        score = 0; frames = 0; gameSpeed = 6.0; backgroundX = 0;
+        nextChunkFrame = 60; // Primer obstáculo rápido
+        nextRockFrame = 300;
+        
         document.getElementById('score-display').innerText = score;
         document.getElementById('game-over-screen').style.display = "none";
         
@@ -271,54 +263,80 @@
     }
     function jumpKey(e) { if(e.code === 'Space' || e.code === 'ArrowUp') jump(); }
 
-    // Sistema de Partículas (Ahora en tonos Amarillos y Blancos)
     function createExplosion(x, y, isShield = false) {
         const pColors = isShield ? [COLORS.white, COLORS.yellow] : [COLORS.yellow, COLORS.orange];
         const numParticles = isShield ? 30 : 15;
         const force = isShield ? 15 : 10;
         for(let i=0; i < numParticles; i++) {
             particles.push({
-                x: x + 15, y: y + 15,
-                vx: (Math.random() - 0.5) * force, vy: (Math.random() - 0.5) * force,
+                x: x + 15, y: y + 15, vx: (Math.random() - 0.5) * force, vy: (Math.random() - 0.5) * force,
                 life: 1.0, color: pColors[Math.floor(Math.random() * pColors.length)]
             });
         }
     }
 
-    // Generador de Niveles
+    // --- GENERADOR PROCEDURAL DE NIVELES ---
     function spawnLevelChunk() {
         let patternType = Math.floor(Math.random() * 5); 
         let groundY = canvas.height - groundHeight;
-        let startX = canvas.width;
+        let startX = canvas.width + Math.random() * 100; // Desfase inicial aleatorio
 
-        if(Math.random() < 0.15 && !player.hasShield) {
-            collectibles.push({ x: startX + 150, y: groundY - 160, width: 40, height: 40, type: 'shield', active: true });
+        // Power-Up Aleatorio (10%)
+        if(Math.random() < 0.10 && !player.hasShield) {
+            collectibles.push({ x: startX + Math.random()*200, y: groundY - (Math.random()*100 + 100), width: 40, height: 40, type: 'shield', active: true });
         }
 
+        // Alturas dinámicas entre 60px y 170px (rango de salto seguro)
+        let dynamicHeight1 = groundY - (Math.random() * 70 + 60);
+        let dynamicHeight2 = groundY - (Math.random() * 60 + 110); // Más alto
+
         if (patternType === 0) {
-            platforms.push({ x: startX, y: groundY - 90, width: 160, height: 20 });
-            collectibles.push({ x: startX + 65, y: groundY - 130, width: 35, height: 35, type: 'coin', active: true });
+            // Plataforma variable sola
+            let platWidth = Math.random() * 100 + 100; // Ancho entre 100 y 200
+            platforms.push({ x: startX, y: dynamicHeight1, width: platWidth, height: 20 });
+            if(Math.random() > 0.3) collectibles.push({ x: startX + platWidth/2 - 17, y: dynamicHeight1 - 40, width: 35, height: 35, type: 'coin', active: true });
+        
         } else if (patternType === 1) {
+            // Riesgo en el suelo simple o doble (aleatorio)
             let img = groundHazards[Math.floor(Math.random() * groundHazards.length)];
-            obstacles.push({ x: startX + 50, y: groundY - 45, width: 45, height: 45, img: img });
+            obstacles.push({ x: startX, y: groundY - 40, width: 40, height: 40, img: img });
+            
+            if(Math.random() > 0.6) { // 40% de chance de ser doble obstáculo separado
+                let img2 = groundHazards[Math.floor(Math.random() * groundHazards.length)];
+                obstacles.push({ x: startX + Math.random()*80 + 80, y: groundY - 40, width: 40, height: 40, img: img2 });
+            }
+
         } else if (patternType === 2) {
+            // Combo: Obstáculo + Plataforma Salvavidas flotante dinámica
             let img = groundHazards[Math.floor(Math.random() * groundHazards.length)];
-            obstacles.push({ x: startX + 50, y: groundY - 45, width: 45, height: 45, img: img });
-            platforms.push({ x: startX + 10, y: groundY - 110, width: 120, height: 20 });
-            collectibles.push({ x: startX + 50, y: groundY - 150, width: 35, height: 35, type: 'coin', active: true });
+            obstacles.push({ x: startX + 20, y: groundY - 40, width: 40, height: 40, img: img });
+            platforms.push({ x: startX - 20, y: dynamicHeight2, width: 140, height: 20 });
+            collectibles.push({ x: startX + 30, y: dynamicHeight2 - 45, width: 35, height: 35, type: 'coin', active: true });
+
         } else if (patternType === 3) {
-            platforms.push({ x: startX, y: groundY - 70, width: 100, height: 20 });
-            platforms.push({ x: startX + 150, y: groundY - 140, width: 100, height: 20 });
-            collectibles.push({ x: startX + 180, y: groundY - 180, width: 35, height: 35, type: 'coin', active: true });
+            // Escalera dinámica (alturas y separaciones aleatorias)
+            platforms.push({ x: startX, y: dynamicHeight1, width: 90, height: 20 });
+            let distToNext = Math.random() * 60 + 80; // Distancia horizontal X
+            platforms.push({ x: startX + distToNext, y: dynamicHeight2, width: 90, height: 20 });
+            collectibles.push({ x: startX + distToNext + 25, y: dynamicHeight2 - 40, width: 35, height: 35, type: 'coin', active: true });
+        
+        } else if (patternType === 4) {
+             // La Trampa Larga: Plataforma muy larga, debes saltar encima porque abajo hay peligro
+             let img = groundHazards[Math.floor(Math.random() * groundHazards.length)];
+             platforms.push({ x: startX, y: dynamicHeight1, width: 250, height: 20 });
+             obstacles.push({ x: startX + 100, y: groundY - 40, width: 40, height: 40, img: img }); // Peligro abajo
+             collectibles.push({ x: startX + 100, y: dynamicHeight1 - 40, width: 35, height: 35, type: 'coin', active: true }); // Premio arriba
         }
     }
 
     function spawnFallingRock() {
-        fallingRocks.push({ x: canvas.width + 50, y: -50, width: 50, height: 50, dx: -gameSpeed * 1.6, dy: Math.random() * 2 + 4 });
+        let randScale = Math.random() * 20 + 35; // Tamaño variable
+        let randSpeed = Math.random() * 2 + 1.2; // Velocidad variable
+        fallingRocks.push({ x: canvas.width + Math.random()*100, y: -50, width: randScale, height: randScale, dx: -gameSpeed * randSpeed, dy: Math.random() * 3 + 3 });
     }
 
     function handleDamageCollision(hazardObj, index, arrayType) {
-        let margin = 12; 
+        let margin = 10; // Hitbox
         if (player.x < hazardObj.x + hazardObj.width - margin && player.x + player.width > hazardObj.x + margin &&
             player.y < hazardObj.y + hazardObj.height - margin && player.y + player.height > hazardObj.y + margin) {
             
@@ -342,7 +360,7 @@
             backgroundX -= gameSpeed * 0.3; if (backgroundX <= -canvas.width) backgroundX = 0;
         } else { ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0, canvas.width, canvas.height); }
 
-        // 2. DIBUJAR SUELO (Estilo Veltis)
+        // 2. DIBUJAR SUELO
         ctx.fillStyle = COLORS.ground; ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
         ctx.strokeStyle = COLORS.yellow; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(0, canvas.height - groundHeight); ctx.lineTo(canvas.width, canvas.height - groundHeight); ctx.stroke();
@@ -354,9 +372,21 @@
             player.dy += gravity; player.grounded = false;
         } else { player.dy = 0; player.grounded = true; player.y = canvas.height - groundHeight - player.height; }
 
-        // 4. SPAWNERS
-        if (frames % 120 === 0) spawnLevelChunk();
-        if (frames % 300 === 0 && Math.random() > 0.3) spawnFallingRock(); 
+        // 4. TIMERS PROCEDURALES (La clave del dinamismo)
+        if (frames >= nextChunkFrame) {
+            spawnLevelChunk();
+            // Calcula el próximo frame: Mientras más rápido el juego, menos tiempo entre obstáculos
+            // Añade un factor aleatorio brutal (entre 0 y 80 frames de diferencia)
+            let baseInterval = Math.max(60, 140 - (gameSpeed * 5)); 
+            nextChunkFrame = frames + baseInterval + Math.random() * 80; 
+        }
+
+        if (frames >= nextRockFrame) {
+            spawnFallingRock(); 
+            // Rocas se vuelven más frecuentes y caóticas
+            let rockInterval = Math.max(80, 250 - (gameSpeed * 8));
+            nextRockFrame = frames + rockInterval + Math.random() * 150;
+        }
 
         // 5. PLATAFORMAS
         for (let i = 0; i < platforms.length; i++) {
@@ -386,7 +416,7 @@
             else if (obs.x + obs.width < 0) { obstacles.splice(i, 1); i--; }
         }
 
-        // 7. ROCAS
+        // 7. ROCAS AÉREAS
         for (let i = 0; i < fallingRocks.length; i++) {
             let rock = fallingRocks[i]; rock.x += rock.dx; rock.y += rock.dy; 
             if (imgRoca.complete && imgRoca.naturalHeight !== 0) ctx.drawImage(imgRoca, rock.x, rock.y, rock.width, rock.height);
@@ -442,6 +472,7 @@
             if(pt.life <= 0) { particles.splice(i, 1); i--; }
         }
 
+        // 11. DIFICULTAD PROGRESIVA
         if (frames % 10 === 0) { score += 1; document.getElementById('score-display').innerText = score; } 
         gameSpeed += 0.002; frames++;
     }
@@ -464,6 +495,7 @@
     }
     
     function resetGame() { initGame(); }
+</script>
 </script>
 
 </body>
