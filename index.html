@@ -139,7 +139,8 @@
 
 </div>
 
-<script>
+
+    <script>
     // --- COLORES CORPORATIVOS PARA CANVAS (Black & Yellow) ---
     const COLORS = {
         bg: '#050505', ground: '#121212', yellow: '#FFC107',
@@ -187,7 +188,7 @@
             modal.style.display = "none";
             document.getElementById('form-screen').style.display = "none";
             document.getElementById('game-screen').style.display = "flex";
-            initGame(); 
+            initGame(); // Esto ahora también disparará la música
         }, 300); 
     });
 
@@ -209,7 +210,11 @@
     const imgRoca = new Image(); imgRoca.src = 'assets/roca.png';
     const imgCasco = new Image(); imgCasco.src = 'assets/casco.png';
 
-    // Assets Audio
+    // --- NUEVO: ASSETS DE AUDIO Y MÚSICA ---
+    const bgMusic = new Audio('assets/musica.mp3');
+    bgMusic.loop = true; // Se repite infinitamente
+    bgMusic.volume = 0.3; // Volumen bajo para que resalten los efectos de sonido
+
     const sfxJump = new Audio('assets/jump.mp3'); sfxJump.volume = 0.4;
     const sfxCoin = new Audio('assets/coin.mp3'); sfxCoin.volume = 0.5;
     const sfxHit = new Audio('assets/hit.mp3'); sfxHit.volume = 0.7;
@@ -218,9 +223,9 @@
 
     function playSound(snd) { snd.currentTime = 0; snd.play().catch(e => console.log("Audio en espera")); }
 
-    // Variables de Estado (Añadimos timers dinámicos)
+    // Variables de Estado
     let animationId, frames = 0, score = 0, gameSpeed = 6.0, backgroundX = 0;
-    let nextChunkFrame = 100, nextRockFrame = 250; // Timers iniciales procedurales
+    let nextChunkFrame = 100, nextRockFrame = 250; 
     let platforms = [], collectibles = [], obstacles = [], fallingRocks = [], particles = [];
 
     const groundHeight = 60, gravity = 1.2, playerJumpForce = 20; 
@@ -233,12 +238,16 @@
         resizeCanvas();
         appContainer.classList.remove('shake'); 
         
+        // --- INICIAR MÚSICA DE FONDO ---
+        bgMusic.currentTime = 0; // Reiniciar la canción desde cero
+        bgMusic.play().catch(e => console.log("Música bloqueada por el navegador"));
+
         player.y = canvas.height - groundHeight - player.height;
         player.dy = 0; player.grounded = true; player.hasShield = false;
         
         platforms = []; collectibles = []; obstacles = []; fallingRocks = []; particles = [];
         score = 0; frames = 0; gameSpeed = 6.0; backgroundX = 0;
-        nextChunkFrame = 60; // Primer obstáculo rápido
+        nextChunkFrame = 60; 
         nextRockFrame = 300;
         
         document.getElementById('score-display').innerText = score;
@@ -275,68 +284,56 @@
         }
     }
 
-    // --- GENERADOR PROCEDURAL DE NIVELES ---
+    // Generador Procedural
     function spawnLevelChunk() {
         let patternType = Math.floor(Math.random() * 5); 
         let groundY = canvas.height - groundHeight;
-        let startX = canvas.width + Math.random() * 100; // Desfase inicial aleatorio
+        let startX = canvas.width + Math.random() * 100;
 
-        // Power-Up Aleatorio (10%)
         if(Math.random() < 0.10 && !player.hasShield) {
             collectibles.push({ x: startX + Math.random()*200, y: groundY - (Math.random()*100 + 100), width: 40, height: 40, type: 'shield', active: true });
         }
 
-        // Alturas dinámicas entre 60px y 170px (rango de salto seguro)
         let dynamicHeight1 = groundY - (Math.random() * 70 + 60);
-        let dynamicHeight2 = groundY - (Math.random() * 60 + 110); // Más alto
+        let dynamicHeight2 = groundY - (Math.random() * 60 + 110); 
 
         if (patternType === 0) {
-            // Plataforma variable sola
-            let platWidth = Math.random() * 100 + 100; // Ancho entre 100 y 200
+            let platWidth = Math.random() * 100 + 100;
             platforms.push({ x: startX, y: dynamicHeight1, width: platWidth, height: 20 });
             if(Math.random() > 0.3) collectibles.push({ x: startX + platWidth/2 - 17, y: dynamicHeight1 - 40, width: 35, height: 35, type: 'coin', active: true });
-        
         } else if (patternType === 1) {
-            // Riesgo en el suelo simple o doble (aleatorio)
             let img = groundHazards[Math.floor(Math.random() * groundHazards.length)];
             obstacles.push({ x: startX, y: groundY - 40, width: 40, height: 40, img: img });
-            
-            if(Math.random() > 0.6) { // 40% de chance de ser doble obstáculo separado
+            if(Math.random() > 0.6) {
                 let img2 = groundHazards[Math.floor(Math.random() * groundHazards.length)];
                 obstacles.push({ x: startX + Math.random()*80 + 80, y: groundY - 40, width: 40, height: 40, img: img2 });
             }
-
         } else if (patternType === 2) {
-            // Combo: Obstáculo + Plataforma Salvavidas flotante dinámica
             let img = groundHazards[Math.floor(Math.random() * groundHazards.length)];
             obstacles.push({ x: startX + 20, y: groundY - 40, width: 40, height: 40, img: img });
             platforms.push({ x: startX - 20, y: dynamicHeight2, width: 140, height: 20 });
             collectibles.push({ x: startX + 30, y: dynamicHeight2 - 45, width: 35, height: 35, type: 'coin', active: true });
-
         } else if (patternType === 3) {
-            // Escalera dinámica (alturas y separaciones aleatorias)
             platforms.push({ x: startX, y: dynamicHeight1, width: 90, height: 20 });
-            let distToNext = Math.random() * 60 + 80; // Distancia horizontal X
+            let distToNext = Math.random() * 60 + 80;
             platforms.push({ x: startX + distToNext, y: dynamicHeight2, width: 90, height: 20 });
             collectibles.push({ x: startX + distToNext + 25, y: dynamicHeight2 - 40, width: 35, height: 35, type: 'coin', active: true });
-        
         } else if (patternType === 4) {
-             // La Trampa Larga: Plataforma muy larga, debes saltar encima porque abajo hay peligro
              let img = groundHazards[Math.floor(Math.random() * groundHazards.length)];
              platforms.push({ x: startX, y: dynamicHeight1, width: 250, height: 20 });
-             obstacles.push({ x: startX + 100, y: groundY - 40, width: 40, height: 40, img: img }); // Peligro abajo
-             collectibles.push({ x: startX + 100, y: dynamicHeight1 - 40, width: 35, height: 35, type: 'coin', active: true }); // Premio arriba
+             obstacles.push({ x: startX + 100, y: groundY - 40, width: 40, height: 40, img: img });
+             collectibles.push({ x: startX + 100, y: dynamicHeight1 - 40, width: 35, height: 35, type: 'coin', active: true });
         }
     }
 
     function spawnFallingRock() {
-        let randScale = Math.random() * 20 + 35; // Tamaño variable
-        let randSpeed = Math.random() * 2 + 1.2; // Velocidad variable
+        let randScale = Math.random() * 20 + 35; 
+        let randSpeed = Math.random() * 2 + 1.2; 
         fallingRocks.push({ x: canvas.width + Math.random()*100, y: -50, width: randScale, height: randScale, dx: -gameSpeed * randSpeed, dy: Math.random() * 3 + 3 });
     }
 
     function handleDamageCollision(hazardObj, index, arrayType) {
-        let margin = 10; // Hitbox
+        let margin = 10; 
         if (player.x < hazardObj.x + hazardObj.width - margin && player.x + player.width > hazardObj.x + margin &&
             player.y < hazardObj.y + hazardObj.height - margin && player.y + player.height > hazardObj.y + margin) {
             
@@ -348,47 +345,38 @@
         return false;
     }
 
-    // --- GAME LOOP ---
     function animate() {
         animationId = requestAnimationFrame(animate);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. DIBUJAR FONDO
         if (bgImg.complete && bgImg.naturalHeight !== 0) {
             ctx.drawImage(bgImg, backgroundX, 0, canvas.width, canvas.height);
             ctx.drawImage(bgImg, backgroundX + canvas.width, 0, canvas.width, canvas.height);
             backgroundX -= gameSpeed * 0.3; if (backgroundX <= -canvas.width) backgroundX = 0;
         } else { ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0, canvas.width, canvas.height); }
 
-        // 2. DIBUJAR SUELO
         ctx.fillStyle = COLORS.ground; ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
         ctx.strokeStyle = COLORS.yellow; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(0, canvas.height - groundHeight); ctx.lineTo(canvas.width, canvas.height - groundHeight); ctx.stroke();
         ctx.lineWidth = 1;
 
-        // 3. FÍSICAS JUGADOR
         player.y += player.dy;
         if (player.y + player.height < canvas.height - groundHeight) {
             player.dy += gravity; player.grounded = false;
         } else { player.dy = 0; player.grounded = true; player.y = canvas.height - groundHeight - player.height; }
 
-        // 4. TIMERS PROCEDURALES (La clave del dinamismo)
         if (frames >= nextChunkFrame) {
             spawnLevelChunk();
-            // Calcula el próximo frame: Mientras más rápido el juego, menos tiempo entre obstáculos
-            // Añade un factor aleatorio brutal (entre 0 y 80 frames de diferencia)
             let baseInterval = Math.max(60, 140 - (gameSpeed * 5)); 
             nextChunkFrame = frames + baseInterval + Math.random() * 80; 
         }
 
         if (frames >= nextRockFrame) {
             spawnFallingRock(); 
-            // Rocas se vuelven más frecuentes y caóticas
             let rockInterval = Math.max(80, 250 - (gameSpeed * 8));
             nextRockFrame = frames + rockInterval + Math.random() * 150;
         }
 
-        // 5. PLATAFORMAS
         for (let i = 0; i < platforms.length; i++) {
             let p = platforms[i]; p.x -= gameSpeed;
             if (platformImg.complete && platformImg.naturalHeight !== 0) {
@@ -406,7 +394,6 @@
             if (p.x + p.width < 0) { platforms.splice(i, 1); i--; }
         }
 
-        // 6. RIESGOS SUELO
         for (let i = 0; i < obstacles.length; i++) {
             let obs = obstacles[i]; obs.x -= gameSpeed;
             if (obs.img && obs.img.complete && obs.img.naturalHeight !== 0) ctx.drawImage(obs.img, obs.x, obs.y, obs.width, obs.height);
@@ -416,7 +403,6 @@
             else if (obs.x + obs.width < 0) { obstacles.splice(i, 1); i--; }
         }
 
-        // 7. ROCAS AÉREAS
         for (let i = 0; i < fallingRocks.length; i++) {
             let rock = fallingRocks[i]; rock.x += rock.dx; rock.y += rock.dy; 
             if (imgRoca.complete && imgRoca.naturalHeight !== 0) ctx.drawImage(imgRoca, rock.x, rock.y, rock.width, rock.height);
@@ -426,7 +412,6 @@
             else if (rock.y > canvas.height || rock.x + rock.width < 0) { fallingRocks.splice(i, 1); i--; }
         }
 
-        // 8. COLECCIONABLES
         for (let i = 0; i < collectibles.length; i++) {
             let c = collectibles[i]; if (!c.active) continue;
             c.x -= gameSpeed;
@@ -447,7 +432,6 @@
             if (c.x + c.width < 0) { collectibles.splice(i, 1); i--; }
         }
 
-        // 9. ANIMAR JUGADOR Y AURA
         if (minerSpritesheet.complete && minerSpritesheet.naturalHeight !== 0) {
             if (!player.grounded) player.frameX = 4; 
             else {
@@ -464,7 +448,6 @@
             ctx.lineWidth = 3; ctx.strokeStyle = COLORS.white; ctx.stroke();
         }
 
-        // 10. PARTÍCULAS
         for(let i = 0; i < particles.length; i++) {
             let pt = particles[i]; pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.04;
             ctx.globalAlpha = Math.max(0, pt.life); ctx.fillStyle = pt.color; ctx.fillRect(pt.x, pt.y, 6, 6);
@@ -472,13 +455,16 @@
             if(pt.life <= 0) { particles.splice(i, 1); i--; }
         }
 
-        // 11. DIFICULTAD PROGRESIVA
         if (frames % 10 === 0) { score += 1; document.getElementById('score-display').innerText = score; } 
         gameSpeed += 0.002; frames++;
     }
 
     function gameOver() {
         cancelAnimationFrame(animationId);
+        
+        // --- DETENER MÚSICA DE FONDO AL PERDER ---
+        bgMusic.pause();
+        
         playSound(sfxHit);
         console.log(`Puntaje Final de ${currentPlayerName}: ${score}`);
 
@@ -496,7 +482,7 @@
     
     function resetGame() { initGame(); }
 </script>
-</script>
+
 
 </body>
 </html>
