@@ -3,187 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Veltis - Ruta Cero Accidentes</title>
+    <title>Veltis - Ruta Cero Accidentes PRO</title>
     <style>
-        /* Paleta Veltis (Sugerida: Azul Profundo, Cyan Tecnológico, Verde Eco, Naranja Seguridad) */
+        /* Paleta Veltis (Azul Profundo, Cyan Tecnológico, Verde Eco, Naranja Seguridad) */
         :root {
             --bg-dark: #0b132b;
             --primary-cyan: #1c2541;
             --accent-green: #4CAF50;
+            --accent-cyan: #00B4D8;
             --alert-orange: #FF9800;
             --text-light: #ffffff;
+            --input-bg: rgba(255,255,255,0.05);
+            --input-border: #3a506b;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-light); display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            touch-action: none; /* Previene scroll en móviles al jugar */
-        }
+        /* Contenedor Principal */
+        #app-container { width: 100%; max-width: 500px; height: 100vh; background-color: var(--primary-cyan); position: relative; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.6); overflow: hidden; }
 
-        /* Contenedor Principal de la App */
-        #app-container {
-            width: 100%;
-            max-width: 500px;
-            height: 100vh;
-            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--primary-cyan) 100%);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
+        /* --- PANTALLA 1: FORMULARIO BBDD --- */
+        #form-screen { padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; z-index: 10; background: linear-gradient(180deg, var(--bg-dark) 0%, var(--primary-cyan) 100%); }
+        .logo-placeholder { width: 180px; height: 60px; background-color: transparent; border: 2px dashed var(--accent-cyan); display: flex; justify-content: center; align-items: center; color: var(--accent-cyan); font-weight: bold; margin-bottom: 30px; border-radius: 8px; font-size: 14px; text-transform: uppercase; }
+        h1 { font-size: 26px; text-align: center; margin-bottom: 10px; color: var(--text-light); font-weight: 800; }
+        p.subtitle { color: #8fa3c4; text-align: center; margin-bottom: 40px; font-size: 15px; max-width: 80%; }
+        .input-group { width: 100%; margin-bottom: 15px; }
+        input { width: 100%; padding: 18px; border-radius: 8px; border: 1px solid var(--input-border); background-color: var(--input-bg); color: white; font-size: 16px; outline: none; transition: border 0.3s; }
+        input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(0, 180, 216, 0.3); }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1.5px; transition: transform 0.1s, opacity 0.3s, background-color 0.3s; }
+        .btn:active { transform: scale(0.98); }
+        .btn-submit { background-color: var(--accent-green); color: white; margin-top: 15px; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-play { background-color: transparent; color: var(--accent-cyan); border: 2px solid var(--accent-cyan); margin-top: 25px; display: none; }
+        .btn-play:hover { background-color: rgba(0, 180, 216, 0.1); }
 
-        /* --- ESTILOS DEL FORMULARIO --- */
-        #form-screen {
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-            z-index: 10;
-        }
-
-        .logo-placeholder {
-            width: 180px;
-            height: 60px;
-            background-color: transparent;
-            border: 2px dashed var(--accent-green);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--accent-green);
-            font-weight: bold;
-            margin-bottom: 30px;
-            border-radius: 8px;
-        }
-
-        h1 {
-            font-size: 24px;
-            text-align: center;
-            margin-bottom: 10px;
-            color: var(--text-light);
-        }
-
-        p.subtitle {
-            color: #8fa3c4;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .input-group {
-            width: 100%;
-            margin-bottom: 15px;
-        }
-
-        input {
-            width: 100%;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #3a506b;
-            background-color: rgba(255,255,255,0.05);
-            color: white;
-            font-size: 16px;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-        input:focus {
-            border-color: var(--accent-green);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: transform 0.1s, opacity 0.3s;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-submit {
-            background-color: var(--accent-green);
-            color: white;
-            margin-top: 10px;
-        }
-
-        .btn-play {
-            background-color: transparent;
-            color: var(--alert-orange);
-            border: 2px solid var(--alert-orange);
-            margin-top: 20px;
-            display: none; /* Oculto hasta enviar form */
-        }
-
-        /* --- ESTILOS DEL JUEGO --- */
-        #game-screen {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--primary-cyan);
-            flex-direction: column;
-        }
-
-        #ui-layer {
-            position: absolute;
-            top: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 5;
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        #score-display {
-            color: var(--accent-green);
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        #game-over-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 19, 43, 0.9);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-        }
-
-        #game-over-screen h2 {
-            color: var(--alert-orange);
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
+        /* --- PANTALLA 2: JUEGO (CANVAS) --- */
+        #game-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; flex-direction: column; }
+        canvas { width: 100%; height: 100%; display: block; }
+        #ui-layer { position: absolute; top: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; z-index: 5; font-weight: bold; font-size: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        #score-display { color: var(--accent-green); }
+        
+        /* Game Over Overlay */
+        #game-over-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 19, 43, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 20; text-align: center; }
+        #game-over-screen h2 { color: var(--alert-orange); font-size: 36px; margin-bottom: 15px; font-weight: 900; }
+        #game-over-screen .final-score-label { color: #8fa3c4; font-size: 18px; margin-bottom: 5px; }
+        #game-over-screen #final-score { color: var(--accent-green); font-size: 60px; font-weight: 800; margin-bottom: 30px; }
+        #game-over-screen .lead-msg { margin-bottom: 40px; padding: 0 30px; color: var(--text-light); font-size: 16px; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -193,10 +59,10 @@
     <div id="form-screen">
         <div class="logo-placeholder">[LOGO VELTIS]</div>
         <h1>Únete a la Minería del Futuro</h1>
-        <p class="subtitle">Registra tus datos para conectar con nuestros ejecutivos.</p>
+        <p class="subtitle">Registra tus datos corporativos para conectar con nuestros ejecutivos y acceder al desafío.</p>
 
         <div class="input-group">
-            <input type="text" id="userName" placeholder="Nombre y Apellido" required>
+            <input type="text" id="userName" placeholder="Nombre Completo" required>
         </div>
         <div class="input-group">
             <input type="text" id="userCompany" placeholder="Empresa" required>
@@ -205,9 +71,9 @@
             <input type="email" id="userEmail" placeholder="Correo Corporativo" required>
         </div>
 
-        <button class="btn btn-submit" id="btn-submit">Solicitar Acceso</button>
+        <button class="btn btn-submit" id="btn-submit">Registrar Datos</button>
         
-        <button class="btn btn-play" id="btn-play">🕹️ Iniciar: Ruta Cero Accidentes</button>
+        <button class="btn btn-play" id="btn-play">🕹️ Jugar: Ruta Cero Accidentes</button>
     </div>
 
     <div id="game-screen">
@@ -219,8 +85,9 @@
         
         <div id="game-over-screen">
             <h2>¡Incidente Detectado!</h2>
-            <p style="margin-bottom: 20px; font-size: 18px;">Puntaje Final: <span id="final-score"></span></p>
-            <p style="margin-bottom: 30px; text-align:center; padding: 0 20px; color: #8fa3c4;">Tus resultados han sido enviados al Leaderboard del stand.</p>
+            <p class="final-score-label">Puntaje Final</p>
+            <p id="final-score">0</p>
+            <p class="lead-msg">Tus resultados han sido enviados al Leaderboard del stand. Nuestros ejecutivos te esperan para continuar.</p>
             <button class="btn btn-submit" style="width: 80%;" onclick="resetGame()">Reintentar Turno</button>
         </div>
     </div>
@@ -228,7 +95,7 @@
 </div>
 
 <script>
-    // --- LÓGICA DEL FORMULARIO ---
+    // --- LÓGICA DEL FORMULARIO BBDD ---
     const formScreen = document.getElementById('form-screen');
     const gameScreen = document.getElementById('game-screen');
     const btnSubmit = document.getElementById('btn-submit');
@@ -238,20 +105,21 @@
     let currentPlayerName = "Invitado";
 
     btnSubmit.addEventListener('click', () => {
-        // Validación básica
-        if(nameInput.value === "") {
-            alert("Por favor, ingresa tu nombre para continuar.");
+        // Validación básica (mejorar para producción B2B)
+        if(nameInput.value === "" || document.getElementById('userCompany').value === "" || document.getElementById('userEmail').value === "") {
+            alert("Por favor, completa todos los campos corporativos para continuar.");
             return;
         }
         
         currentPlayerName = nameInput.value;
+        // Solo mostrar el primer nombre
         document.getElementById('player-name-display').innerText = currentPlayerName.split(" ")[0];
 
-        // Aquí iría el código para enviar datos a tu base de datos (Ej. Firebase Firestore)
-        console.log("Datos enviados a BBDD");
+        // --- CONEXIÓN BBDD: Aquí enviarías 'nameInput.value', etc., a tu base de datos ---
+        console.log("Datos de Lead enviados a BBDD.");
 
-        // Cambiar UI
-        btnSubmit.innerText = "¡Datos Guardados!";
+        // UI Feedback
+        btnSubmit.innerText = "¡Registro Exitoso!";
         btnSubmit.style.backgroundColor = "#2e4a3b"; // Verde oscuro
         btnSubmit.disabled = true;
         
@@ -262,11 +130,11 @@
     btnPlay.addEventListener('click', () => {
         formScreen.style.display = "none";
         gameScreen.style.display = "flex";
-        initGame();
+        initGame(); // Iniciar loop del juego
     });
 
 
-    // --- LÓGICA DEL JUEGO (CANVAS ENDLESS RUNNER) ---
+    // --- LÓGICA DEL JUEGO (CANVAS - Mario 3 Veltis Edition) ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreDisplay = document.getElementById('score-display');
@@ -276,43 +144,61 @@
     let animationId;
     let frames = 0;
     let score = 0;
-    let gameSpeed = 5;
-    let obstacles = [];
+    let gameSpeed = 6;
+    let platforms = [];
+    let collectibles = [];
+    let backgroundX = 0;
 
-    // Ajustar canvas a la pantalla
+    // --- CARGA DE ASSETS (Imágenes generadas en paso anterior) ---
+    const bgImg = new Image(); bgImg.src = 'assets/mining_background.webp'; // Imagen 1
+    const minerSpritesheet = new Image(); minerSpritesheet.src = 'assets/miner_spritesheet.png'; // Imagen 0
+    const platformImg = new Image(); platformImg.src = 'assets/platform.png'; // Imagen 2
+    const veltisIconImg = new Image(); veltisIconImg.src = 'assets/veltis_icon.png'; // Imagen 3
+
+    // Configuración Sprite Sheet (5 frames de 100x100px en fila)
+    const spriteConfig = { frameWidth: 100, frameHeight: 100, totalFrames: 5 };
+
+    // Ajustar canvas a la pantalla móvil
     function resizeCanvas() {
         canvas.width = gameScreen.clientWidth;
         canvas.height = gameScreen.clientHeight;
     }
     window.addEventListener('resize', resizeCanvas);
 
-    // Objeto Jugador (Representa un camión minero o dron)
-    const player = {
-        x: 50,
-        y: 0,
-        width: 40,
-        height: 40,
-        dy: 0,
-        jumpForce: 12,
-        originalHeight: 0,
-        grounded: false,
-        jumpTimer: 0
-    };
+    // Físicas Globales
+    const gravity = 0.8;
+    const playerJumpForce = 18;
+    const groundHeight = 60; // Altura del suelo desde la base
 
-    const gravity = 0.6;
+    // Objeto Jugador (Minero Animado)
+    const player = {
+        x: 60,
+        y: 0,
+        width: 50, // Ancho de visualización
+        height: 50, // Alto de visualización
+        dy: 0,
+        grounded: false,
+        frameX: 0, // Frame actual de la spritesheet
+        frameTimer: 0 // Velocidad de animación
+    };
 
     function initGame() {
         resizeCanvas();
-        player.y = canvas.height - player.height - 50; // Nivel del suelo
-        player.originalHeight = player.y;
-        obstacles = [];
+        // Posición inicial del jugador sobre el suelo
+        player.y = canvas.height - groundHeight - player.height;
+        player.dy = 0;
+        player.grounded = true;
+        
+        platforms = [];
+        collectibles = [];
         score = 0;
         frames = 0;
-        gameSpeed = 5;
+        gameSpeed = 6;
+        backgroundX = 0;
         scoreDisplay.innerText = `Puntos: ${score}`;
         gameOverScreen.style.display = "none";
         
-        // Event Listeners para saltar (Click y Touch)
+        // Controles Touch y Click
         canvas.addEventListener('touchstart', jump);
         canvas.addEventListener('mousedown', jump);
         window.addEventListener('keydown', (e) => { if(e.code === 'Space') jump(); });
@@ -320,87 +206,159 @@
         animate();
     }
 
-    function jump() {
+    function jump(e) {
+        // Previene doble salto si no es touch o click válido
+        if(e && e.type === 'touchstart') e.preventDefault(); 
         if (player.grounded) {
-            player.dy = -player.jumpForce;
+            player.dy = -playerJumpForce;
             player.grounded = false;
         }
     }
 
-    function spawnObstacle() {
-        let size = Math.random() * 30 + 20;
-        let obstacle = {
-            x: canvas.width,
-            y: canvas.height - size - 50, // Mismo nivel del suelo
-            width: size,
-            height: size,
-            color: '#FF9800' // Color alerta/riesgo
-        };
-        obstacles.push(obstacle);
+    // --- GENERADOR DE PLATAFORMAS Y COLECCIONABLES ---
+    function spawnPlatformSet() {
+        let platWidth = Math.random() * 150 + 150;
+        // Altura aleatoria flotante (entre 1/3 y 2/3 de la pantalla)
+        let platY = Math.random() * (canvas.height * 0.4) + (canvas.height * 0.3); 
+        
+        let newPlatform = { x: canvas.width, y: platY, width: platWidth, height: 25 };
+        platforms.push(newPlatform);
+
+        // Generar 2 o 3 íconos Veltis sobre la plataforma
+        let numIcons = Math.floor(Math.random() * 2 + 2);
+        for(let i=0; i<numIcons; i++) {
+            collectibles.push({
+                x: canvas.width + (platWidth / (numIcons+1)) * (i+1) - 15,
+                y: platY - 45, // 45px sobre la plataforma
+                width: 30, height: 30, active: true
+            });
+        }
     }
 
     function animate() {
         animationId = requestAnimationFrame(animate);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Suelo
-        ctx.fillStyle = '#1c2541';
-        ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
-        ctx.strokeStyle = '#4CAF50';
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height - 50);
-        ctx.lineTo(canvas.width, canvas.height - 50);
-        ctx.stroke();
+        // 1. DIBUJAR FONDO INFINITO (Imagen 1 - Parallax Lento)
+        if (bgImg.complete) {
+            ctx.drawImage(bgImg, backgroundX, 0, canvas.width, canvas.height);
+            ctx.drawImage(bgImg, backgroundX + canvas.width, 0, canvas.width, canvas.height);
+            backgroundX -= gameSpeed * 0.3; // Mover 30% de la velocidad del juego
+            if (backgroundX <= -canvas.width) backgroundX = 0;
+        } else {
+            ctx.fillStyle = "#1c2541"; ctx.fillRect(0,0, canvas.width, canvas.height); // Fallback
+        }
 
-        // Físicas del jugador
+        // 2. DIBUJAR SUELO (Básico)
+        ctx.fillStyle = '#0b132b';
+        ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+        ctx.strokeStyle = var(--accent-green);
+        ctx.beginPath(); ctx.moveTo(0, canvas.height - groundHeight); ctx.lineTo(canvas.width, canvas.height - groundHeight); ctx.stroke();
+
+        // 3. ACTUALIZAR FÍSICAS JUGADOR (Gravedad)
         player.y += player.dy;
-        if (player.y + player.height < canvas.height - 50) {
+        if (player.y + player.height < canvas.height - groundHeight) {
             player.dy += gravity;
             player.grounded = false;
         } else {
+            // Aterrizar en el suelo
             player.dy = 0;
             player.grounded = true;
-            player.y = canvas.height - 50 - player.height;
+            player.y = canvas.height - groundHeight - player.height;
         }
 
-        // Dibujar jugador (Aquí puedes reemplazar con un drawImage para tu sprite de Veltis)
-        ctx.fillStyle = '#00B4D8'; // Cyan tecno
-        ctx.fillRect(player.x, player.y, player.width, player.height);
+        // 4. ANIMAR Y DIBUJAR JUGADOR (Sprite Sheet - Imagen 0)
+        if (minerSpritesheet.complete) {
+            // Determinar frameX de animación
+            if (!player.grounded) {
+                player.frameX = 4; // Pose de SALTO (frame 5)
+            } else {
+                // Pose de CORRER (Ciclo frames 2, 3, 4)
+                player.frameTimer++;
+                if (player.frameTimer % 5 === 0) { // Velocidad de animación
+                    player.frameX = (player.frameX % 3) + 1; // Ciclar frames 1, 2, 3 (índices 1,2,3 en spritesheet de 5 frames)
+                }
+            }
 
-        // Manejar obstáculos
-        if (frames % Math.floor(Math.random() * 60 + 60) === 0) {
-            spawnObstacle();
+            // drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh)
+            ctx.drawImage(minerSpritesheet, 
+                player.frameX * spriteConfig.frameWidth, 0, spriteConfig.frameWidth, spriteConfig.frameHeight, // RECORTE
+                player.x, player.y, player.width, player.height // DESTINO CANVAS
+            );
+        } else {
+            ctx.fillStyle = var(--accent-cyan); ctx.fillRect(player.x, player.y, player.width, player.height); // Fallback
         }
 
-        for (let i = 0; i < obstacles.length; i++) {
-            let obs = obstacles[i];
-            obs.x -= gameSpeed;
+        // 5. MANEJAR PLATAFORMAS (Imagen 2 - Rejilla)
+        if (frames % 120 === 0) { spawnPlatformSet(); } // Generar set cada 120 frames
 
-            // Dibujar obstáculo (Riesgo en faena)
-            ctx.fillStyle = obs.color;
-            ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        for (let i = 0; i < platforms.length; i++) {
+            let p = platforms[i];
+            p.x -= gameSpeed;
 
-            // Detección de colisión (Hitbox básica)
+            // Dibujar Plataforma
+            if (platformImg.complete) {
+                // Usar patrón repetido para cubrir el ancho
+                ctx.fillStyle = ctx.createPattern(platformImg, 'repeat');
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.fillRect(0, 0, p.width, p.height);
+                ctx.restore();
+            } else {
+                ctx.fillStyle = '#3a506b'; ctx.fillRect(p.x, p.y, p.width, p.height); // Fallback
+            }
+
+            // DETECCIÓN COLISIÓN PLATAFORMA (Lógica Aterrizaje Mario)
             if (
-                player.x < obs.x + obs.width &&
-                player.x + player.width > obs.x &&
-                player.y < obs.y + obs.height &&
-                player.y + player.height > obs.y
+                player.x < p.x + p.width &&
+                player.x + player.width > p.x &&
+                player.y + player.height > p.y &&
+                player.y + player.height < p.y + p.height + player.dy // Solo si cae sobre ella
             ) {
-                gameOver();
+                if (player.dy > 0) { // Cayendo
+                    player.grounded = true;
+                    player.dy = 0;
+                    player.y = p.y - player.height;
+                }
             }
 
-            // Eliminar obstáculos que salen de pantalla y sumar puntos
-            if (obs.x + obs.width < 0) {
-                obstacles.splice(i, 1);
-                score += 10;
-                scoreDisplay.innerText = `Puntos: ${score}`;
-                i--;
-            }
+            // Eliminar si sale de pantalla
+            if (p.x + p.width < 0) { platforms.splice(i, 1); i--; }
         }
 
-        // Aumentar dificultad
-        gameSpeed += 0.002;
+        // 6. MANEJAR COLECCIONABLES (Imagen 3 - Ícono Veltis Sustentabilidad)
+        for (let i = 0; i < collectibles.length; i++) {
+            let c = collectibles[i];
+            if (!c.active) continue;
+            c.x -= gameSpeed;
+
+            // Dibujar Ícono
+            if (veltisIconImg.complete) {
+                ctx.drawImage(veltisIconImg, c.x, c.y, c.width, c.height);
+            } else {
+                ctx.fillStyle = var(--accent-green); ctx.fillRect(c.x, c.y, c.width, c.height); // Fallback
+            }
+
+            // DETECCIÓN COLISIÓN RECOLECCIÓN (Caja simple)
+            if (
+                player.x < c.x + c.width &&
+                player.x + player.width > c.x &&
+                player.y < c.y + c.height &&
+                player.y + player.height > c.y
+            ) {
+                c.active = false;
+                score += 50; // ¡Puntos extra!
+                scoreDisplay.innerText = `Puntos: ${score}`;
+                console.log("+50 Puntos extra por Sustentabilidad.");
+            }
+
+            // Eliminar si sale de pantalla
+            if (c.x + c.width < 0) { collectibles.splice(i, 1); i--; }
+        }
+
+        // 7. AUMENTAR DIFICULTAD Y PUNTAJE BASE
+        if (frames % 10 === 0) { score += 1; scoreDisplay.innerText = `Puntos: ${score}`; } // Puntos por sobrevivir
+        gameSpeed += 0.002; // Aumentar velocidad progresivamente
         frames++;
     }
 
@@ -409,10 +367,10 @@
         gameOverScreen.style.display = "flex";
         finalScoreDisplay.innerText = score;
         
-        // Aquí iría la función para enviar el 'score' a la base de datos para el Leaderboard
-        console.log(`Puntaje de ${currentPlayerName} enviado a la pantalla principal: ${score}`);
+        // --- CONEXIÓN BBDD: Aquí enviarías el 'score' a la base de datos para el Leaderboard gigante ---
+        console.log(`Puntaje de ${currentPlayerName} enviado al Leaderboard del stand: ${score}`);
         
-        // Limpiar event listeners para no duplicarlos
+        // Limpiar controles para el reinicio
         canvas.removeEventListener('touchstart', jump);
         canvas.removeEventListener('mousedown', jump);
     }
