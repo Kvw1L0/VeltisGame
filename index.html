@@ -95,7 +95,7 @@
 </div>
 
 <script>
-    // --- LÓGICA DEL FORMULARIO BBDD ---
+   // --- LÓGICA DEL FORMULARIO BBDD ---
     const formScreen = document.getElementById('form-screen');
     const gameScreen = document.getElementById('game-screen');
     const btnSubmit = document.getElementById('btn-submit');
@@ -105,22 +105,20 @@
     let currentPlayerName = "Invitado";
 
     btnSubmit.addEventListener('click', () => {
-        // Validación básica (mejorar para producción B2B)
+        // Validación: Obliga a llenar los 3 campos
         if(nameInput.value === "" || document.getElementById('userCompany').value === "" || document.getElementById('userEmail').value === "") {
             alert("Por favor, completa todos los campos corporativos para continuar.");
             return;
         }
         
         currentPlayerName = nameInput.value;
-        // Solo mostrar el primer nombre
         document.getElementById('player-name-display').innerText = currentPlayerName.split(" ")[0];
 
-        // --- CONEXIÓN BBDD: Aquí enviarías 'nameInput.value', etc., a tu base de datos ---
         console.log("Datos de Lead enviados a BBDD.");
 
         // UI Feedback
         btnSubmit.innerText = "¡Registro Exitoso!";
-        btnSubmit.style.backgroundColor = "#2e4a3b"; // Verde oscuro
+        btnSubmit.style.backgroundColor = "#2e4a3b"; 
         btnSubmit.disabled = true;
         
         // Mostrar botón de juego opcional
@@ -130,7 +128,7 @@
     btnPlay.addEventListener('click', () => {
         formScreen.style.display = "none";
         gameScreen.style.display = "flex";
-        initGame(); // Iniciar loop del juego
+        initGame(); 
     });
 
 
@@ -149,16 +147,14 @@
     let collectibles = [];
     let backgroundX = 0;
 
-    // --- CARGA DE ASSETS (Imágenes generadas en paso anterior) ---
-    const bgImg = new Image(); bgImg.src = 'assets/mining_background.webp'; // Imagen 1
-    const minerSpritesheet = new Image(); minerSpritesheet.src = 'assets/miner_spritesheet.png'; // Imagen 0
-    const platformImg = new Image(); platformImg.src = 'assets/platform.png'; // Imagen 2
-    const veltisIconImg = new Image(); veltisIconImg.src = 'assets/veltis_icon.png'; // Imagen 3
+    // --- CARGA DE ASSETS ---
+    const bgImg = new Image(); bgImg.src = 'assets/mining_background.webp'; 
+    const minerSpritesheet = new Image(); minerSpritesheet.src = 'assets/miner_spritesheet.png'; 
+    const platformImg = new Image(); platformImg.src = 'assets/platform.png'; 
+    const veltisIconImg = new Image(); veltisIconImg.src = 'assets/veltis_icon.png'; 
 
-    // Configuración Sprite Sheet (5 frames de 100x100px en fila)
     const spriteConfig = { frameWidth: 100, frameHeight: 100, totalFrames: 5 };
 
-    // Ajustar canvas a la pantalla móvil
     function resizeCanvas() {
         canvas.width = gameScreen.clientWidth;
         canvas.height = gameScreen.clientHeight;
@@ -168,38 +164,24 @@
     // Físicas Globales
     const gravity = 0.8;
     const playerJumpForce = 18;
-    const groundHeight = 60; // Altura del suelo desde la base
+    const groundHeight = 60; 
 
-    // Objeto Jugador (Minero Animado)
+    // Objeto Jugador
     const player = {
-        x: 60,
-        y: 0,
-        width: 50, // Ancho de visualización
-        height: 50, // Alto de visualización
-        dy: 0,
-        grounded: false,
-        frameX: 0, // Frame actual de la spritesheet
-        frameTimer: 0 // Velocidad de animación
+        x: 60, y: 0, width: 50, height: 50, dy: 0, grounded: false, frameX: 0, frameTimer: 0 
     };
 
     function initGame() {
         resizeCanvas();
-        // Posición inicial del jugador sobre el suelo
         player.y = canvas.height - groundHeight - player.height;
         player.dy = 0;
         player.grounded = true;
         
-        platforms = [];
-        collectibles = [];
-        score = 0;
-        frames = 0;
-        gameSpeed = 6;
-        backgroundX = 0;
+        platforms = []; collectibles = []; score = 0; frames = 0; gameSpeed = 6; backgroundX = 0;
         scoreDisplay.innerText = `Puntos: ${score}`;
         gameOverScreen.style.display = "none";
         
-        // Controles Touch y Click
-        canvas.addEventListener('touchstart', jump);
+        canvas.addEventListener('touchstart', jump, {passive: false});
         canvas.addEventListener('mousedown', jump);
         window.addEventListener('keydown', (e) => { if(e.code === 'Space') jump(); });
 
@@ -207,7 +189,6 @@
     }
 
     function jump(e) {
-        // Previene doble salto si no es touch o click válido
         if(e && e.type === 'touchstart') e.preventDefault(); 
         if (player.grounded) {
             player.dy = -playerJumpForce;
@@ -215,22 +196,18 @@
         }
     }
 
-    // --- GENERADOR DE PLATAFORMAS Y COLECCIONABLES ---
     function spawnPlatformSet() {
         let platWidth = Math.random() * 150 + 150;
-        // Altura aleatoria flotante (entre 1/3 y 2/3 de la pantalla)
         let platY = Math.random() * (canvas.height * 0.4) + (canvas.height * 0.3); 
         
         let newPlatform = { x: canvas.width, y: platY, width: platWidth, height: 25 };
         platforms.push(newPlatform);
 
-        // Generar 2 o 3 íconos Veltis sobre la plataforma
         let numIcons = Math.floor(Math.random() * 2 + 2);
         for(let i=0; i<numIcons; i++) {
             collectibles.push({
                 x: canvas.width + (platWidth / (numIcons+1)) * (i+1) - 15,
-                y: platY - 45, // 45px sobre la plataforma
-                width: 30, height: 30, active: true
+                y: platY - 45, width: 30, height: 30, active: true
             });
         }
     }
@@ -239,126 +216,105 @@
         animationId = requestAnimationFrame(animate);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. DIBUJAR FONDO INFINITO (Imagen 1 - Parallax Lento)
-        if (bgImg.complete) {
+        // 1. DIBUJAR FONDO INFINITO
+        if (bgImg.complete && bgImg.naturalHeight !== 0) {
             ctx.drawImage(bgImg, backgroundX, 0, canvas.width, canvas.height);
             ctx.drawImage(bgImg, backgroundX + canvas.width, 0, canvas.width, canvas.height);
-            backgroundX -= gameSpeed * 0.3; // Mover 30% de la velocidad del juego
+            backgroundX -= gameSpeed * 0.3; 
             if (backgroundX <= -canvas.width) backgroundX = 0;
         } else {
-            ctx.fillStyle = "#1c2541"; ctx.fillRect(0,0, canvas.width, canvas.height); // Fallback
+            ctx.fillStyle = "#1c2541"; ctx.fillRect(0,0, canvas.width, canvas.height); 
         }
 
-        // 2. DIBUJAR SUELO (Básico)
+        // 2. DIBUJAR SUELO
         ctx.fillStyle = '#0b132b';
         ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
-        ctx.strokeStyle = var(--accent-green);
+        ctx.strokeStyle = '#4CAF50'; // CORREGIDO AQUÍ
         ctx.beginPath(); ctx.moveTo(0, canvas.height - groundHeight); ctx.lineTo(canvas.width, canvas.height - groundHeight); ctx.stroke();
 
-        // 3. ACTUALIZAR FÍSICAS JUGADOR (Gravedad)
+        // 3. ACTUALIZAR FÍSICAS JUGADOR
         player.y += player.dy;
         if (player.y + player.height < canvas.height - groundHeight) {
             player.dy += gravity;
             player.grounded = false;
         } else {
-            // Aterrizar en el suelo
             player.dy = 0;
             player.grounded = true;
             player.y = canvas.height - groundHeight - player.height;
         }
 
-        // 4. ANIMAR Y DIBUJAR JUGADOR (Sprite Sheet - Imagen 0)
-        if (minerSpritesheet.complete) {
-            // Determinar frameX de animación
+        // 4. ANIMAR Y DIBUJAR JUGADOR
+        if (minerSpritesheet.complete && minerSpritesheet.naturalHeight !== 0) {
             if (!player.grounded) {
-                player.frameX = 4; // Pose de SALTO (frame 5)
+                player.frameX = 4; 
             } else {
-                // Pose de CORRER (Ciclo frames 2, 3, 4)
                 player.frameTimer++;
-                if (player.frameTimer % 5 === 0) { // Velocidad de animación
-                    player.frameX = (player.frameX % 3) + 1; // Ciclar frames 1, 2, 3 (índices 1,2,3 en spritesheet de 5 frames)
+                if (player.frameTimer % 5 === 0) { 
+                    player.frameX = (player.frameX % 3) + 1; 
                 }
             }
-
-            // drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh)
             ctx.drawImage(minerSpritesheet, 
-                player.frameX * spriteConfig.frameWidth, 0, spriteConfig.frameWidth, spriteConfig.frameHeight, // RECORTE
-                player.x, player.y, player.width, player.height // DESTINO CANVAS
+                player.frameX * spriteConfig.frameWidth, 0, spriteConfig.frameWidth, spriteConfig.frameHeight, 
+                player.x, player.y, player.width, player.height 
             );
         } else {
-            ctx.fillStyle = var(--accent-cyan); ctx.fillRect(player.x, player.y, player.width, player.height); // Fallback
+            ctx.fillStyle = '#00B4D8'; // CORREGIDO AQUÍ
+            ctx.fillRect(player.x, player.y, player.width, player.height); 
         }
 
-        // 5. MANEJAR PLATAFORMAS (Imagen 2 - Rejilla)
-        if (frames % 120 === 0) { spawnPlatformSet(); } // Generar set cada 120 frames
+        // 5. MANEJAR PLATAFORMAS
+        if (frames % 120 === 0) { spawnPlatformSet(); } 
 
         for (let i = 0; i < platforms.length; i++) {
             let p = platforms[i];
             p.x -= gameSpeed;
 
-            // Dibujar Plataforma
-            if (platformImg.complete) {
-                // Usar patrón repetido para cubrir el ancho
+            if (platformImg.complete && platformImg.naturalHeight !== 0) {
                 ctx.fillStyle = ctx.createPattern(platformImg, 'repeat');
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.fillRect(0, 0, p.width, p.height);
-                ctx.restore();
+                ctx.save(); ctx.translate(p.x, p.y); ctx.fillRect(0, 0, p.width, p.height); ctx.restore();
             } else {
-                ctx.fillStyle = '#3a506b'; ctx.fillRect(p.x, p.y, p.width, p.height); // Fallback
+                ctx.fillStyle = '#3a506b'; ctx.fillRect(p.x, p.y, p.width, p.height); 
             }
 
-            // DETECCIÓN COLISIÓN PLATAFORMA (Lógica Aterrizaje Mario)
             if (
-                player.x < p.x + p.width &&
-                player.x + player.width > p.x &&
-                player.y + player.height > p.y &&
-                player.y + player.height < p.y + p.height + player.dy // Solo si cae sobre ella
+                player.x < p.x + p.width && player.x + player.width > p.x &&
+                player.y + player.height > p.y && player.y + player.height < p.y + p.height + player.dy 
             ) {
-                if (player.dy > 0) { // Cayendo
-                    player.grounded = true;
-                    player.dy = 0;
-                    player.y = p.y - player.height;
+                if (player.dy > 0) { 
+                    player.grounded = true; player.dy = 0; player.y = p.y - player.height;
                 }
             }
 
-            // Eliminar si sale de pantalla
             if (p.x + p.width < 0) { platforms.splice(i, 1); i--; }
         }
 
-        // 6. MANEJAR COLECCIONABLES (Imagen 3 - Ícono Veltis Sustentabilidad)
+        // 6. MANEJAR COLECCIONABLES
         for (let i = 0; i < collectibles.length; i++) {
             let c = collectibles[i];
             if (!c.active) continue;
             c.x -= gameSpeed;
 
-            // Dibujar Ícono
-            if (veltisIconImg.complete) {
+            if (veltisIconImg.complete && veltisIconImg.naturalHeight !== 0) {
                 ctx.drawImage(veltisIconImg, c.x, c.y, c.width, c.height);
             } else {
-                ctx.fillStyle = var(--accent-green); ctx.fillRect(c.x, c.y, c.width, c.height); // Fallback
+                ctx.fillStyle = '#4CAF50'; // CORREGIDO AQUÍ
+                ctx.fillRect(c.x, c.y, c.width, c.height); 
             }
 
-            // DETECCIÓN COLISIÓN RECOLECCIÓN (Caja simple)
             if (
-                player.x < c.x + c.width &&
-                player.x + player.width > c.x &&
-                player.y < c.y + c.height &&
-                player.y + player.height > c.y
+                player.x < c.x + c.width && player.x + player.width > c.x &&
+                player.y < c.y + c.height && player.y + player.height > c.y
             ) {
-                c.active = false;
-                score += 50; // ¡Puntos extra!
+                c.active = false; score += 50; 
                 scoreDisplay.innerText = `Puntos: ${score}`;
-                console.log("+50 Puntos extra por Sustentabilidad.");
             }
 
-            // Eliminar si sale de pantalla
             if (c.x + c.width < 0) { collectibles.splice(i, 1); i--; }
         }
 
-        // 7. AUMENTAR DIFICULTAD Y PUNTAJE BASE
-        if (frames % 10 === 0) { score += 1; scoreDisplay.innerText = `Puntos: ${score}`; } // Puntos por sobrevivir
-        gameSpeed += 0.002; // Aumentar velocidad progresivamente
+        // 7. AUMENTAR DIFICULTAD
+        if (frames % 10 === 0) { score += 1; scoreDisplay.innerText = `Puntos: ${score}`; } 
+        gameSpeed += 0.002; 
         frames++;
     }
 
@@ -367,10 +323,6 @@
         gameOverScreen.style.display = "flex";
         finalScoreDisplay.innerText = score;
         
-        // --- CONEXIÓN BBDD: Aquí enviarías el 'score' a la base de datos para el Leaderboard gigante ---
-        console.log(`Puntaje de ${currentPlayerName} enviado al Leaderboard del stand: ${score}`);
-        
-        // Limpiar controles para el reinicio
         canvas.removeEventListener('touchstart', jump);
         canvas.removeEventListener('mousedown', jump);
     }
